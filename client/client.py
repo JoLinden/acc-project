@@ -1,5 +1,6 @@
 import flwr as fl
 import tensorflow as tf
+from config import server_ip
 
 (x_train, y_train), (x_test, y_test) = tf.keras.datasets.cifar10.load_data()
 
@@ -22,4 +23,4 @@ class CifarClient(fl.client.NumPyClient):
         return loss, len(x_test), {'accuracy': accuracy}
 
 
-fl.client.start_numpy_client('[::]:8080', client=CifarClient())
+fl.client.start_numpy_client(f'{server_ip}:8080', client=CifarClient())
