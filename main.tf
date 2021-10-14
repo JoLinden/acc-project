@@ -19,13 +19,13 @@ resource "openstack_networking_floatingip_v2" "floating-ips" {
 }
 
 # Set up server
-resource "openstack_compute_instance_v2" "g5-flower-server-b" {
-  name            = "g5-flower-server-b"
+resource "openstack_compute_instance_v2" "g5-flower-server" {
+  name            = "g5-flower-server"
   image_name      = "Ubuntu 18.04"
   image_id        = "0b7f5fb5-a25c-48b6-8578-06dbfa160723"
   flavor_name     = "ssc.xsmall"
   key_pair        = var.key_pair
-  security_groups = ["default", "group-5", "stefanos_sec_group"]
+  security_groups = ["default", "group-5"]
 
   network {
     name = "UPPMAX 2021/1-5 Internal IPv4 Network"
@@ -35,9 +35,9 @@ resource "openstack_compute_instance_v2" "g5-flower-server-b" {
 # Give server a floating IP and upload files
 resource "openstack_compute_floatingip_associate_v2" "server-ip-associate" {
   floating_ip = openstack_networking_floatingip_v2.floating-ips[0].address
-  instance_id = openstack_compute_instance_v2.g5-flower-server-b.id
+  instance_id = openstack_compute_instance_v2.g5-flower-server.id
   depends_on = [
-    openstack_compute_instance_v2.g5-flower-server-b,
+    openstack_compute_instance_v2.g5-flower-server,
     openstack_networking_floatingip_v2.floating-ips
   ]
 
@@ -46,25 +46,23 @@ resource "openstack_compute_floatingip_associate_v2" "server-ip-associate" {
     destination   = "/home/ubuntu/"
 
     connection {
-      type        = "ssh"
       user        = "ubuntu"
       host        = openstack_compute_floatingip_associate_v2.server-ip-associate.floating_ip
-      private_key = file("stefkeypair.pem")
     }
   }
 }
 
 
 # Set up client
-resource "openstack_compute_instance_v2" "g5-flower-client-b" {
-  name            = "g5-flower-client-b"
+resource "openstack_compute_instance_v2" "g5-flower-client" {
+  name            = "g5-flower-client"
   image_name      = "Ubuntu 18.04"
   image_id        = "0b7f5fb5-a25c-48b6-8578-06dbfa160723"
   flavor_name     = "ssc.xsmall"
   key_pair        = var.key_pair
-  security_groups = ["default", "group-5", "stefanos_sec_group"]
+  security_groups = ["default", "group-5"]
   depends_on = [
-    openstack_compute_instance_v2.g5-flower-server-b
+    openstack_compute_instance_v2.g5-flower-server
   ]
   #user_data = <<-EOF
   #  #cloud-config
@@ -72,14 +70,14 @@ resource "openstack_compute_instance_v2" "g5-flower-client-b" {
   #    - path: /home/ubuntu/config.py
   #      owner: ubuntu:ubuntu
   #      content: |
-  #        server_ip = "${openstack_compute_instance_v2.g5-flower-server-b.access_ip_v4}"
+  #        server_ip = "${openstack_compute_instance_v2.g5-flower-server.access_ip_v4}"
   #  runcmd:
   #    - sudo bash
   #    - chown ubuntu:ubuntu /home/ubuntu
   #EOF
 
   #personality {
-  #  content = "server_ip = '${openstack_compute_instance_v2.g5-flower-server-b.access_ip_v4}'"
+  #  content = "server_ip = '${openstack_compute_instance_v2.g5-flower-server.access_ip_v4}'"
   #  file    = "/home/ubuntu/config.py"
   #}
 
@@ -91,9 +89,9 @@ resource "openstack_compute_instance_v2" "g5-flower-client-b" {
 # Give client a floating IP and upload files
 resource "openstack_compute_floatingip_associate_v2" "client-ip-associate" {
   floating_ip = openstack_networking_floatingip_v2.floating-ips[1].address
-  instance_id = openstack_compute_instance_v2.g5-flower-client-b.id
+  instance_id = openstack_compute_instance_v2.g5-flower-client.id
   depends_on  = [
-    openstack_compute_instance_v2.g5-flower-client-b,
+    openstack_compute_instance_v2.g5-flower-client,
     openstack_networking_floatingip_v2.floating-ips
   ]
 
@@ -102,10 +100,8 @@ resource "openstack_compute_floatingip_associate_v2" "client-ip-associate" {
     destination = "/home/ubuntu/"
 
     connection {
-      type = "ssh"
       user = "ubuntu"
       host = openstack_compute_floatingip_associate_v2.client-ip-associate.floating_ip
-      private_key = file("stefkeypair.pem")
     }
   }
 }
@@ -118,12 +114,10 @@ resource "null_resource" "update-client-config" {
   ]
 
   connection {
-    type = "ssh"
     user = "ubuntu"
     host = openstack_compute_floatingip_associate_v2.client-ip-associate.floating_ip
-    private_key = file("stefkeypair.pem")
   }
   provisioner "remote-exec" {
-    inline = ["echo \" server_ip = '${openstack_compute_instance_v2.g5-flower-server-b.access_ip_v4}'\" > /home/ubuntu/config.py"]
+    inline = ["echo \" server_ip = '${openstack_compute_instance_v2.g5-flower-server.access_ip_v4}'\" > /home/ubuntu/config.py"]
   }
 }
