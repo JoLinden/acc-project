@@ -3,3 +3,4 @@
 terraform.tfstate*
 UPPMAX*
 *.tfvars
+stefkeypair.pem
