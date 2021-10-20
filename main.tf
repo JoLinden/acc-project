@@ -26,6 +26,7 @@ resource "openstack_compute_instance_v2" "g5-flower-server" {
   flavor_name     = "ssc.xsmall"
   key_pair        = var.key_pair
   security_groups = ["default", "group-5"]
+  user_data = file("cloud-config-server.txt")
 
   network {
     name = "UPPMAX 2021/1-5 Internal IPv4 Network"
@@ -64,22 +65,7 @@ resource "openstack_compute_instance_v2" "g5-flower-client" {
   depends_on = [
     openstack_compute_instance_v2.g5-flower-server
   ]
-  #user_data = <<-EOF
-  #  #cloud-config
-  #  write_files:
-  #    - path: /home/ubuntu/config.py
-  #      owner: ubuntu:ubuntu
-  #      content: |
-  #        server_ip = "${openstack_compute_instance_v2.g5-flower-server.access_ip_v4}"
-  #  runcmd:
-  #    - sudo bash
-  #    - chown ubuntu:ubuntu /home/ubuntu
-  #EOF
-
-  #personality {
-  #  content = "server_ip = '${openstack_compute_instance_v2.g5-flower-server.access_ip_v4}'"
-  #  file    = "/home/ubuntu/config.py"
-  #}
+  user_data = file("cloud-config-client.txt")
 
   network {
     name = "UPPMAX 2021/1-5 Internal IPv4 Network"
@@ -118,6 +104,6 @@ resource "null_resource" "update-client-config" {
     host = openstack_compute_floatingip_associate_v2.client-ip-associate.floating_ip
   }
   provisioner "remote-exec" {
-    inline = ["echo \" server_ip = '${openstack_compute_instance_v2.g5-flower-server.access_ip_v4}'\" > /home/ubuntu/config.py"]
+    inline = ["echo \"server_ip = '${openstack_compute_instance_v2.g5-flower-server.access_ip_v4}'\" > /home/ubuntu/config.py"]
   }
 }
