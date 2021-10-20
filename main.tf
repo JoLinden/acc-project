@@ -59,7 +59,7 @@ resource "openstack_compute_instance_v2" "g5-flower-client" {
   name            = "g5-flower-client"
   image_name      = "Ubuntu 18.04"
   image_id        = "0b7f5fb5-a25c-48b6-8578-06dbfa160723"
-  flavor_name     = "ssc.xsmall"
+  flavor_name     = "ssc.xsmall.highmem"
   key_pair        = var.key_pair
   security_groups = ["default", "group-5"]
   depends_on = [

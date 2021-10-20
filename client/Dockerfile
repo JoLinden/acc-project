@@ -5,5 +5,5 @@ RUN apt-get install -y git
 RUN apt-get install -y python3-pip
 RUN pip3 install --upgrade pip
 ADD . .
-RUN pip3 install --no-cache-dir --timeout=1000 -r requirements.txt
+RUN pip3 install --no-cache-dir --retries=15 -r requirements.txt
 CMD python3 client.py
