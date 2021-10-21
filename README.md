@@ -19,7 +19,7 @@ sudo apt-add-repository "deb [arch=amd64] https://apt.releases.hashicorp.com $(l
 sudo apt-get update && sudo apt-get install terraform
 ```
 
-To launch the two instances, first set the correct environment variables using
+To launch the server and clients, first set the correct environment variables using
 ```shell
 source <project_name>_openrc.sh
 ```
@@ -41,6 +41,12 @@ terraform apply -var-file="secret.tfvars"
 ```
 The instances should now have launched.
 
+By default, 2 clients are launched. To change the number of clients, run
+```shell
+terraform apply -var-file="secret.tfvars" -var="clients=N"
+```
+where `N` is the number of clients you want to launch.
+
 To remove the instances, use
 ```shell
 terraform destroy
@@ -53,9 +59,10 @@ Whenever you make changes to the setup, you need to destroy the instances, and t
 do so when running `terraform apply` if that is the case.
 
 ## Project structure
-The project is split up into two services, one server and one client, each with their own directory.
+The project is split up into two services, the server and the client, each with their own directory.
 
-Running `terraform apply` will create one instance for each of the services, attach floating IPs to them, and move only the
+Running `terraform apply` will create one instance for the server, and one instance for each client.
+It will then attach floating IPs to them, and move only the
 needed files (`server/` and `client/`) for the services to the respective instances.
 
 The Terraform configuration is mainly done in `main.tf`, but declaration of variables is done in `variables.tf`.

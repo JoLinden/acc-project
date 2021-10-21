@@ -15,7 +15,7 @@ provider "openstack" {
 # Fetch floating IPs for the two VMs
 resource "openstack_networking_floatingip_v2" "floating-ips" {
   pool = "Public External IPv4 Network"
-  count = 2
+  count = var.clients + 1
 }
 
 # Set up server
@@ -56,7 +56,8 @@ resource "openstack_compute_floatingip_associate_v2" "server-ip-associate" {
 
 # Set up client
 resource "openstack_compute_instance_v2" "g5-flower-client" {
-  name            = "g5-flower-client"
+  count           = var.clients
+  name            = format("g5-flower-client-%s", count.index)
   image_name      = "Ubuntu 18.04"
   image_id        = "0b7f5fb5-a25c-48b6-8578-06dbfa160723"
   flavor_name     = "ssc.xsmall.highmem"
@@ -74,8 +75,10 @@ resource "openstack_compute_instance_v2" "g5-flower-client" {
 
 # Give client a floating IP and upload files
 resource "openstack_compute_floatingip_associate_v2" "client-ip-associate" {
-  floating_ip = openstack_networking_floatingip_v2.floating-ips[1].address
-  instance_id = openstack_compute_instance_v2.g5-flower-client.id
+  count = var.clients
+  floating_ip = openstack_networking_floatingip_v2.floating-ips[count.index + 1].address
+  instance_id = openstack_compute_instance_v2.g5-flower-client[count.index].id
+
   depends_on  = [
     openstack_compute_instance_v2.g5-flower-client,
     openstack_networking_floatingip_v2.floating-ips
@@ -87,13 +90,15 @@ resource "openstack_compute_floatingip_associate_v2" "client-ip-associate" {
 
     connection {
       user = "ubuntu"
-      host = openstack_compute_floatingip_associate_v2.client-ip-associate.floating_ip
+      host = self.floating_ip
     }
   }
 }
 
 # Set server_ip of the client config file
 resource "null_resource" "update-client-config" {
+  count = var.clients
+
   depends_on = [
     openstack_compute_floatingip_associate_v2.client-ip-associate,
     openstack_compute_floatingip_associate_v2.server-ip-associate
@@ -101,7 +106,7 @@ resource "null_resource" "update-client-config" {
 
   connection {
     user = "ubuntu"
-    host = openstack_compute_floatingip_associate_v2.client-ip-associate.floating_ip
+    host = openstack_compute_floatingip_associate_v2.client-ip-associate[count.index].floating_ip
   }
   provisioner "remote-exec" {
     inline = ["echo \"server_ip = '${openstack_compute_instance_v2.g5-flower-server.access_ip_v4}'\" > /home/ubuntu/config.py"]
