@@ -31,6 +31,12 @@ name of your OpenStack key pair.
 key_pair = "YOUR_KEY_PAIR_NAME"
 ```
 
+To avoid conflicts with other instances, you can also add a suffix to the instance names
+by adding the following line to `secret.tfvars`.
+```terraform
+instance_suffix = '-YOUR_SUFFIX'
+```
+
 Make sure you are in the project root directory, and then run
 ```shell
 terraform init

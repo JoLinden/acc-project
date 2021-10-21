@@ -20,7 +20,7 @@ resource "openstack_networking_floatingip_v2" "floating-ips" {
 
 # Set up server
 resource "openstack_compute_instance_v2" "g5-flower-server" {
-  name            = "g5-flower-server"
+  name            = "g5-flower-server${var.instance_suffix}"
   image_name      = "Ubuntu 18.04"
   image_id        = "0b7f5fb5-a25c-48b6-8578-06dbfa160723"
   flavor_name     = "ssc.xsmall"
@@ -57,7 +57,7 @@ resource "openstack_compute_floatingip_associate_v2" "server-ip-associate" {
 # Set up client
 resource "openstack_compute_instance_v2" "g5-flower-client" {
   count           = var.clients
-  name            = format("g5-flower-client-%s", count.index)
+  name            = format("g5-flower-client${var.instance_suffix}-%s", count.index)
   image_name      = "Ubuntu 18.04"
   image_id        = "0b7f5fb5-a25c-48b6-8578-06dbfa160723"
   flavor_name     = "ssc.xsmall.highmem"

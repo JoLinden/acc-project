@@ -11,3 +11,9 @@ variable "clients" {
   sensitive   = false
   default     = 2
 }
+
+variable "instance_suffix" {
+  description = "Suffix to add to instance names"
+  type        = string
+  default     = ""
+}
