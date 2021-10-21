@@ -1,8 +1,14 @@
 import flwr as fl
 import tensorflow as tf
-from config import server_ip
+import numpy as np
+from config import server_ip, n_clients, client_id
 
 (x_train, y_train), (x_test, y_test) = tf.keras.datasets.cifar10.load_data()
+x_train = np.array_split(x_train, n_clients)[client_id]
+y_train = np.array_split(y_train, n_clients)[client_id]
+
+x_test = np.array_split(x_test, n_clients)[client_id]
+y_test = np.array_split(y_test, n_clients)[client_id]
 
 model = tf.keras.applications.MobileNetV2((32, 32, 3), classes=10, weights=None)
 model.compile('adam', 'sparse_categorical_crossentropy', metrics=['accuracy'])

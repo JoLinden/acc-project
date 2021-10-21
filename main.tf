@@ -95,7 +95,7 @@ resource "openstack_compute_floatingip_associate_v2" "client-ip-associate" {
   }
 }
 
-# Set server_ip of the client config file
+# Set configuration variables for the clients
 resource "null_resource" "update-client-config" {
   count = var.clients
 
@@ -109,6 +109,27 @@ resource "null_resource" "update-client-config" {
     host = openstack_compute_floatingip_associate_v2.client-ip-associate[count.index].floating_ip
   }
   provisioner "remote-exec" {
-    inline = ["echo \"server_ip = '${openstack_compute_instance_v2.g5-flower-server.access_ip_v4}'\" > /home/ubuntu/config.py"]
+    inline = [
+      "echo \"server_ip = '${openstack_compute_instance_v2.g5-flower-server.access_ip_v4}'\" > /home/ubuntu/config.py",
+      "echo \"n_clients = ${var.clients}\" >> /home/ubuntu/config.py",
+      "echo \"client_id = ${count.index}\" >> /home/ubuntu/config.py",
+    ]
+  }
+}
+
+# Set server_ip of the client config file
+resource "null_resource" "update-server-config" {
+  depends_on = [
+    openstack_compute_floatingip_associate_v2.server-ip-associate
+  ]
+
+  connection {
+    user = "ubuntu"
+    host = openstack_compute_floatingip_associate_v2.server-ip-associate.floating_ip
+  }
+  provisioner "remote-exec" {
+    inline = [
+      "echo \"n_clients = ${var.clients}\" > /home/ubuntu/config.py"
+    ]
   }
 }
