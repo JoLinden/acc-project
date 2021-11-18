@@ -15,7 +15,7 @@ provider "openstack" {
 # key 
 resource "openstack_compute_keypair_v2" "my-cloud-key" {
   name       = "stef-key"
-  public_key = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDgjz0c2tDJbVcgULgJR6BAyYI0rfQBk67tpR7cWyIPyd467j66GkXEwUhZRoEecGoLNqYLYyHcalV49BpvNrxif0oJxGNu/sUn9i1YLArBFDdJ0C9L0BbwK9p0hQkDJa4hEepj2R5o6W7fro55ueMIyJCJVJZk/3H0TIl5PYPxCArZRuiXw3QW4W2/MvnY/5vRydgrqv9TxSBLBTBvFfBjPHv3h9wxsh0TVRI1AIDXF/9W31di4uDtu68AavaDM/XrrfrFNPO0bVHxjCdZJi4nhM2+gJkRqdkZASl/VQUVuFs68bYaDW7IK3bTsqGLkkPu3uBrXPtZybMyhzZib1Bp"
+  public_key = ""
 }
 
 # Fetch floating IPs for the two VMs
